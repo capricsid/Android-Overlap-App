@@ -230,6 +230,12 @@ class MainActivity : AppCompatActivity() {
             toggleId = R.id.textAppearanceSectionToggle,
             initiallyExpanded = true,
         )
+        bindSection(
+            headerId = R.id.headerColorPickerSection,
+            bodyId = R.id.bodyColorPickerSection,
+            toggleId = R.id.textColorPickerSectionToggle,
+            initiallyExpanded = false,
+        )
     }
 
     private fun bindSection(

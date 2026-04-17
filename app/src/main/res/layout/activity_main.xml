@@ -343,43 +343,72 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:id="@+id/headerColorPickerSection"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="@string/overlay_color"
-                        android:textColor="@color/body_color" />
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:minHeight="36dp"
+                        android:orientation="horizontal">
 
-                    <com.example.overlayscreen.ColorWheelView
-                        android:id="@+id/colorWheelView"
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/overlay_color"
+                            android:textColor="@color/body_color"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textColorPickerSectionToggle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/expand_label"
+                            android:textColor="@color/accent"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/bodyColorPickerSection"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp"
-                        android:layout_marginTop="10dp" />
-
-                    <TextView
-                        android:id="@+id/textColorValue"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textColor="@color/body_color"
-                        android:textStyle="bold" />
+                        android:orientation="vertical">
 
-                    <View
-                        android:id="@+id/viewColorPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@color/overlay_default" />
+                        <com.example.overlayscreen.ColorWheelView
+                            android:id="@+id/colorWheelView"
+                            android:layout_width="match_parent"
+                            android:layout_height="220dp"
+                            android:layout_marginTop="10dp" />
 
-                    <GridLayout
-                        android:id="@+id/gridColorSwatches"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:alignmentMode="alignMargins"
-                        android:columnCount="4"
-                        android:rowOrderPreserved="false"
-                        android:useDefaultMargins="true" />
+                        <TextView
+                            android:id="@+id/textColorValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:textColor="@color/body_color"
+                            android:textStyle="bold" />
+
+                        <View
+                            android:id="@+id/viewColorPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@color/overlay_default" />
+
+                        <GridLayout
+                            android:id="@+id/gridColorSwatches"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:alignmentMode="alignMargins"
+                            android:columnCount="4"
+                            android:rowOrderPreserved="false"
+                            android:useDefaultMargins="true" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
