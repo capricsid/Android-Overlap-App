@@ -97,7 +97,7 @@ class OverlayMaskView @JvmOverloads constructor(
 
         backgroundBitmap?.let { bitmap ->
             bitmapPaint.alpha = 255
-            canvas.drawBitmap(bitmap, null, overlayRect, bitmapPaint)
+            canvas.drawBitmap(bitmap, centerCropSourceRect(bitmap, overlayRect), overlayRect, bitmapPaint)
         } ?: canvas.drawRect(overlayRect, fillPaint)
 
         if (config.customText.isNotBlank()) {
@@ -135,6 +135,20 @@ class OverlayMaskView @JvmOverloads constructor(
                 context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
             }
         }.getOrNull()
+    }
+
+    private fun centerCropSourceRect(bitmap: Bitmap, targetRect: Rect): Rect {
+        val bitmapAspect = bitmap.width.toFloat() / bitmap.height.toFloat()
+        val targetAspect = targetRect.width().toFloat() / targetRect.height().coerceAtLeast(1).toFloat()
+        return if (bitmapAspect > targetAspect) {
+            val croppedWidth = (bitmap.height * targetAspect).toInt().coerceAtMost(bitmap.width)
+            val left = ((bitmap.width - croppedWidth) / 2).coerceAtLeast(0)
+            Rect(left, 0, left + croppedWidth, bitmap.height)
+        } else {
+            val croppedHeight = (bitmap.width / targetAspect).toInt().coerceAtMost(bitmap.height)
+            val top = ((bitmap.height - croppedHeight) / 2).coerceAtLeast(0)
+            Rect(0, top, bitmap.width, top + croppedHeight)
+        }
     }
 
     private fun OverlayConfig.peekRects(): List<Rect> = listOf(peekOne, peekTwo, peekThree, peekFour)
