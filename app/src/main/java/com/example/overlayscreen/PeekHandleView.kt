@@ -38,6 +38,7 @@ class PeekHandleView @JvmOverloads constructor(
     private lateinit var windowManager: WindowManager
     private lateinit var layoutParams: WindowManager.LayoutParams
     private var onUpdate: ((PeekRectState) -> Unit)? = null
+    private var onInteractionChanged: ((Boolean) -> Unit)? = null
     private var screenWidth: Int = 0
     private var screenHeight: Int = 0
     private val minSize = context.dp(36)
@@ -57,12 +58,14 @@ class PeekHandleView @JvmOverloads constructor(
         screenWidth: Int,
         screenHeight: Int,
         onUpdate: (PeekRectState) -> Unit,
+        onInteractionChanged: (Boolean) -> Unit,
     ) {
         this.windowManager = windowManager
         this.layoutParams = layoutParams
         this.screenWidth = screenWidth
         this.screenHeight = screenHeight
         this.onUpdate = onUpdate
+        this.onInteractionChanged = onInteractionChanged
         invalidate()
     }
 
@@ -98,6 +101,7 @@ class PeekHandleView @JvmOverloads constructor(
                 startWidth = layoutParams.width
                 startHeight = layoutParams.height
                 dragMode = resolveDragMode(event.x, event.y)
+                onInteractionChanged?.invoke(true)
                 return true
             }
 
@@ -115,6 +119,7 @@ class PeekHandleView @JvmOverloads constructor(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 performClick()
                 onUpdate?.invoke(currentState())
+                onInteractionChanged?.invoke(false)
                 return true
             }
         }

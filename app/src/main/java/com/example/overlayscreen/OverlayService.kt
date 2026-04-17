@@ -54,9 +54,14 @@ class OverlayService : Service() {
     private var dismissWindowLayoutParams: WindowManager.LayoutParams? = null
 
     private var panelVisible = false
+    private var peekInteractionActive = false
     private var bindingPanel = false
     private var overlayVisible = true
     private var animatingDismiss = false
+    private val restoreQuickPanelRunnable = Runnable {
+        peekInteractionActive = false
+        showQuickPanelIfNeeded(animated = true)
+    }
 
     private val configReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -400,8 +405,31 @@ class OverlayService : Service() {
                 screenWidth = bounds.width(),
                 screenHeight = bounds.height(),
                 onUpdate = onUpdate,
+                onInteractionChanged = ::handlePeekInteractionChanged,
             )
             windowManager.addView(view, params)
+        }
+    }
+
+    private fun handlePeekInteractionChanged(active: Boolean) {
+        val settings = settingsView ?: return
+        settings.removeCallbacks(restoreQuickPanelRunnable)
+        if (active) {
+            peekInteractionActive = true
+            if (settings.visibility == View.VISIBLE) {
+                settings.animate()
+                    .alpha(0f)
+                    .setDuration(120L)
+                    .withEndAction {
+                        if (peekInteractionActive) {
+                            settings.visibility = View.GONE
+                            settings.alpha = 1f
+                        }
+                    }
+                    .start()
+            }
+        } else {
+            settings.postDelayed(restoreQuickPanelRunnable, 240L)
         }
     }
 
@@ -555,12 +583,36 @@ class OverlayService : Service() {
             if (!animatingDismiss) {
                 maskWindows.forEach { it.view.visibility = View.VISIBLE }
             }
-            settingsView?.visibility =
-                if (panelVisible && !config.controlsCollapsed) View.VISIBLE else View.GONE
+            if (!peekInteractionActive) {
+                showQuickPanelIfNeeded(animated = false)
+            } else {
+                settingsView?.visibility = View.GONE
+            }
             setPeekEditorsVisible(panelVisible && overlayVisible && !config.controlsCollapsed)
         }
         updateControlsAppearance()
         updateSettingsPanelPosition()
+    }
+
+    private fun showQuickPanelIfNeeded(animated: Boolean) {
+        val settings = settingsView ?: return
+        val shouldShow = panelVisible && overlayVisible && !config.controlsCollapsed && !peekInteractionActive
+        if (!shouldShow) {
+            settings.visibility = View.GONE
+            settings.alpha = 1f
+            return
+        }
+        if (settings.visibility == View.VISIBLE && !animated) return
+        settings.visibility = View.VISIBLE
+        if (animated) {
+            settings.alpha = 0f
+            settings.animate()
+                .alpha(1f)
+                .setDuration(160L)
+                .start()
+        } else {
+            settings.alpha = 1f
+        }
     }
 
     private fun updateControlsAppearance() {

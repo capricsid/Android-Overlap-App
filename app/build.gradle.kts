@@ -15,8 +15,8 @@ android {
         applicationId = "com.example.overlayscreen"
         minSdk = 23
         targetSdk = 34
-        versionCode = 15
-        versionName = "1.1.3"
+        versionCode = 16
+        versionName = "1.1.4"
     }
 
     buildTypes {
@@ -37,6 +37,13 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "app-${name}-${versionName}.apk"
+        }
     }
 }
 
