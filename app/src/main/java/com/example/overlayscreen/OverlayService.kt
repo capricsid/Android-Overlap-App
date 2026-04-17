@@ -285,10 +285,14 @@ class OverlayService : Service() {
         })
         trueOpaqueCheck.setOnCheckedChangeListener { _, isChecked ->
             if (bindingPanel) return@setOnCheckedChangeListener
+            val displayPercent = OverlayOpacityPolicy.actualPercentToDisplay(
+                config.opacityPercent,
+                config.fullOpaqueMaskEnabled,
+            )
             config = config.copy(
                 fullOpaqueMaskEnabled = isChecked,
-                opacityPercent = OverlayOpacityPolicy.normalizeActualPercent(
-                    config.opacityPercent,
+                opacityPercent = OverlayOpacityPolicy.displayPercentToActual(
+                    displayPercent,
                     isChecked,
                 ),
             )
@@ -427,6 +431,7 @@ class OverlayService : Service() {
             window.params.height = rect.height()
             window.params.x = rect.left
             window.params.y = rect.top
+            window.params.format = maskPixelFormat()
             window.params.alpha = config.opacityPercent / 100f
             if (window.view.isAttachedToWindow) {
                 windowManager.updateViewLayout(window.view, window.params)
@@ -738,7 +743,7 @@ class OverlayService : Service() {
         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-        PixelFormat.TRANSLUCENT,
+        maskPixelFormat(),
     ).apply {
         gravity = Gravity.TOP or Gravity.START
         x = rect.left
@@ -797,6 +802,13 @@ class OverlayService : Service() {
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun maskPixelFormat(): Int =
+        if (config.fullOpaqueMaskEnabled) {
+            PixelFormat.OPAQUE
+        } else {
+            PixelFormat.TRANSLUCENT
+        }
 
     private fun overlayWindowType(): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

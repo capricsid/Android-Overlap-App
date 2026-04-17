@@ -310,10 +310,14 @@ class MainActivity : AppCompatActivity() {
         findViewById<CheckBox>(R.id.checkTrueOpaqueMask).setOnCheckedChangeListener { _, isChecked ->
             if (bindingUi) return@setOnCheckedChangeListener
             store.update {
+                val displayPercent = OverlayOpacityPolicy.actualPercentToDisplay(
+                    it.opacityPercent,
+                    it.fullOpaqueMaskEnabled,
+                )
                 it.copy(
                     fullOpaqueMaskEnabled = isChecked,
-                    opacityPercent = OverlayOpacityPolicy.normalizeActualPercent(
-                        it.opacityPercent,
+                    opacityPercent = OverlayOpacityPolicy.displayPercentToActual(
+                        displayPercent,
                         isChecked,
                     ),
                 )
