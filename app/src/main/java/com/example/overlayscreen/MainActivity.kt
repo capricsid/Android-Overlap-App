@@ -1,6 +1,7 @@
 package com.example.overlayscreen
 
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -19,6 +20,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.view.WindowManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var store: OverlayConfigStore
@@ -28,6 +32,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var colorPresetAdapter: ArrayAdapter<String>
     private var bindingUi = false
     private var suppressSpinnerCallbacks = false
+    private val statusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            refreshUi()
+        }
+    }
 
     private val imagePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) {
@@ -82,8 +91,18 @@ class MainActivity : AppCompatActivity() {
                     Intent(this, OverlayService::class.java).setAction(OverlayService.ACTION_START),
                 )
             }
-            refreshUi()
         }
+
+        findViewById<Button>(R.id.btnResetOverlayControls).setOnClickListener {
+            resetOverlayControls()
+        }
+
+        ContextCompat.registerReceiver(
+            this,
+            statusReceiver,
+            IntentFilter(OverlayService.ACTION_STATUS_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
 
         setupAdapters()
         bindMenus()
@@ -97,6 +116,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshUi()
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(statusReceiver) }
+        super.onDestroy()
     }
 
     private fun setupAdapters() {
@@ -348,6 +372,13 @@ class MainActivity : AppCompatActivity() {
             store.update { it.copy(customText = editable?.toString().orEmpty()) }
             pushConfigUpdate()
         }
+    }
+
+    private fun resetOverlayControls() {
+        val bounds = (getSystemService(WINDOW_SERVICE) as WindowManager).currentScreenBounds()
+        store.save(OverlayConfig().seeded(bounds.width(), bounds.height()))
+        pushConfigUpdate()
+        refreshUi()
     }
 
     private fun refreshUi() {

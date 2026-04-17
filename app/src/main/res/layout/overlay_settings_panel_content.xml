@@ -186,4 +186,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp" />
+
+    <Button
+        android:id="@+id/btnResetOverlayControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/main_button_secondary"
+        android:minHeight="48dp"
+        android:text="@string/reset_overlay_controls"
+        android:textAllCaps="false"
+        android:textColor="@color/title_color" />
 </LinearLayout>

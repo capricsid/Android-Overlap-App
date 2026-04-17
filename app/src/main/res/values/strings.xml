@@ -48,6 +48,7 @@
     <string name="peek_windows">Peek windows</string>
     <string name="button_opacity">Button opacity</string>
     <string name="overlay_off_animation">Overlay-off animation</string>
+    <string name="reset_overlay_controls">Reset overlay controls</string>
     <string name="overlay_theme">Preset theme</string>
     <string name="background_library">Built-in backgrounds</string>
     <string name="overlay_image">Overlay image</string>

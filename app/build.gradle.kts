@@ -15,8 +15,8 @@ android {
         applicationId = "com.example.overlayscreen"
         minSdk = 23
         targetSdk = 34
-        versionCode = 13
-        versionName = "1.1.1"
+        versionCode = 15
+        versionName = "1.1.3"
     }
 
     buildTypes {

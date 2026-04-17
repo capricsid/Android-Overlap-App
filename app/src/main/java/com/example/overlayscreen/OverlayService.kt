@@ -79,15 +79,21 @@ class OverlayService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
+                isRunning = false
+                notifyStatusChanged()
                 stopSelf()
                 return START_NOT_STICKY
             }
 
             ACTION_START, ACTION_CONFIG_CHANGED, null -> {
                 if (!Settings.canDrawOverlays(this)) {
+                    isRunning = false
+                    notifyStatusChanged()
                     stopSelf()
                     return START_NOT_STICKY
                 }
+                isRunning = true
+                notifyStatusChanged()
                 startOverlayForeground()
                 showOverlayIfNeeded()
                 refreshFromStore()
@@ -98,6 +104,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        notifyStatusChanged()
         runCatching { unregisterReceiver(configReceiver) }
         removeOverlayViews()
         super.onDestroy()
@@ -445,10 +452,6 @@ class OverlayService : Service() {
     private fun restackForegroundWindows() {
         restackWindow(controlsView, controlsWindowLayoutParams)
         restackWindow(settingsView, settingsWindowLayoutParams)
-        restackWindow(peekOneView, peekOneView?.layoutParams as? WindowManager.LayoutParams)
-        restackWindow(peekTwoView, peekTwoView?.layoutParams as? WindowManager.LayoutParams)
-        restackWindow(peekThreeView, peekThreeView?.layoutParams as? WindowManager.LayoutParams)
-        restackWindow(peekFourView, peekFourView?.layoutParams as? WindowManager.LayoutParams)
     }
 
     private fun restackWindow(
@@ -743,6 +746,10 @@ class OverlayService : Service() {
         }
     }
 
+    private fun notifyStatusChanged() {
+        sendBroadcast(Intent(ACTION_STATUS_CHANGED).setPackage(packageName))
+    }
+
     private fun fullScreenLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
         WindowManager.LayoutParams.MATCH_PARENT,
         WindowManager.LayoutParams.MATCH_PARENT,
@@ -853,6 +860,7 @@ class OverlayService : Service() {
         const val ACTION_START = "com.example.overlayscreen.action.START"
         const val ACTION_STOP = "com.example.overlayscreen.action.STOP"
         const val ACTION_CONFIG_CHANGED = "com.example.overlayscreen.action.CONFIG_CHANGED"
+        const val ACTION_STATUS_CHANGED = "com.example.overlayscreen.action.STATUS_CHANGED"
 
         private const val CHANNEL_ID = "overlay_controls"
         private const val NOTIFICATION_ID = 41
