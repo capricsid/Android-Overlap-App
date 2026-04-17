@@ -40,6 +40,7 @@ class OverlayService : Service() {
     private lateinit var config: OverlayConfig
 
     private val maskWindows = mutableListOf<SegmentWindow>()
+    private var lastAppliedFullOpaqueMaskEnabled: Boolean? = null
 
     private var controlsView: View? = null
     private var settingsView: View? = null
@@ -299,16 +300,16 @@ class OverlayService : Service() {
         })
         trueOpaqueCheck.setOnCheckedChangeListener { _, isChecked ->
             if (bindingPanel) return@setOnCheckedChangeListener
-            val displayPercent = OverlayOpacityPolicy.actualPercentToDisplay(
-                config.opacityPercent,
-                config.fullOpaqueMaskEnabled,
-            )
             config = config.copy(
                 fullOpaqueMaskEnabled = isChecked,
-                opacityPercent = OverlayOpacityPolicy.displayPercentToActual(
-                    displayPercent,
-                    isChecked,
-                ),
+                opacityPercent = if (isChecked) {
+                    OverlayOpacityPolicy.DISPLAY_MAX_PERCENT
+                } else {
+                    OverlayOpacityPolicy.normalizeActualPercent(
+                        config.opacityPercent,
+                        fullOpaqueMaskEnabled = false,
+                    )
+                },
             )
             persistAndRender(updatePanel = false)
             bindPanelValues(view)
@@ -449,6 +450,14 @@ class OverlayService : Service() {
         val bounds = windowManager.currentScreenBounds()
         val scene = OverlayMaskLayout.buildScene(config, bounds.width(), bounds.height())
 
+        if (lastAppliedFullOpaqueMaskEnabled != config.fullOpaqueMaskEnabled) {
+            maskWindows.forEach { window ->
+                runCatching { windowManager.removeView(window.view) }
+            }
+            maskWindows.clear()
+            lastAppliedFullOpaqueMaskEnabled = config.fullOpaqueMaskEnabled
+        }
+
         while (maskWindows.size > scene.segments.size) {
             val removed = maskWindows.removeLast()
             runCatching { windowManager.removeView(removed.view) }
@@ -470,7 +479,7 @@ class OverlayService : Service() {
             window.params.x = rect.left
             window.params.y = rect.top
             window.params.format = maskPixelFormat()
-            window.params.alpha = config.opacityPercent / 100f
+            window.params.alpha = maskWindowAlpha()
             if (window.view.isAttachedToWindow) {
                 windowManager.updateViewLayout(window.view, window.params)
             }
@@ -506,6 +515,7 @@ class OverlayService : Service() {
             runCatching { windowManager.removeView(window.view) }
         }
         maskWindows.clear()
+        lastAppliedFullOpaqueMaskEnabled = null
         listOf(controlsView, settingsView, peekOneView, peekTwoView, peekThreeView, peekFourView).forEach { view ->
             if (view != null) {
                 runCatching { windowManager.removeView(view) }
@@ -828,7 +838,7 @@ class OverlayService : Service() {
         gravity = Gravity.TOP or Gravity.START
         x = rect.left
         y = rect.top
-        alpha = config.opacityPercent / 100f
+        alpha = maskWindowAlpha()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
@@ -888,6 +898,13 @@ class OverlayService : Service() {
             PixelFormat.OPAQUE
         } else {
             PixelFormat.TRANSLUCENT
+        }
+
+    private fun maskWindowAlpha(): Float =
+        if (config.fullOpaqueMaskEnabled) {
+            1f
+        } else {
+            config.opacityPercent / 100f
         }
 
     private fun maskWindowFlags(): Int {
