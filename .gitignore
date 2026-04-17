@@ -1,0 +1,8 @@
+.gradle/
+local.properties
+app/build/
+snapshots/
+*.png
+*.xml
+!app/src/main/**/xml/
+!app/src/main/**/*.xml
