@@ -158,6 +158,7 @@ class OverlayService : Service() {
         }
 
         setPeekEditorsVisible(false)
+        restackForegroundWindows()
     }
 
     private fun refreshFromStore() {
@@ -166,6 +167,7 @@ class OverlayService : Service() {
         config = store.load().seeded(bounds.width(), bounds.height())
         store.save(config)
         renderMaskSegments()
+        restackForegroundWindows()
         peekOneView?.applyState(config.peekOne)
         peekTwoView?.applyState(config.peekTwo)
         peekThreeView?.applyState(config.peekThree)
@@ -399,6 +401,7 @@ class OverlayService : Service() {
     private fun persistAndRender(updatePanel: Boolean = true) {
         store.save(config)
         renderMaskSegments()
+        restackForegroundWindows()
         applyControlsOpacity()
         updateControlsAppearance()
         if (updatePanel) {
@@ -436,6 +439,26 @@ class OverlayService : Service() {
             if (window.view.isAttachedToWindow) {
                 windowManager.updateViewLayout(window.view, window.params)
             }
+        }
+    }
+
+    private fun restackForegroundWindows() {
+        restackWindow(controlsView, controlsWindowLayoutParams)
+        restackWindow(settingsView, settingsWindowLayoutParams)
+        restackWindow(peekOneView, peekOneView?.layoutParams as? WindowManager.LayoutParams)
+        restackWindow(peekTwoView, peekTwoView?.layoutParams as? WindowManager.LayoutParams)
+        restackWindow(peekThreeView, peekThreeView?.layoutParams as? WindowManager.LayoutParams)
+        restackWindow(peekFourView, peekFourView?.layoutParams as? WindowManager.LayoutParams)
+    }
+
+    private fun restackWindow(
+        view: View?,
+        params: WindowManager.LayoutParams?,
+    ) {
+        if (view == null || params == null || !view.isAttachedToWindow) return
+        runCatching {
+            windowManager.removeView(view)
+            windowManager.addView(view, params)
         }
     }
 
@@ -740,9 +763,7 @@ class OverlayService : Service() {
         rect.width(),
         rect.height(),
         overlayWindowType(),
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        maskWindowFlags(),
         maskPixelFormat(),
     ).apply {
         gravity = Gravity.TOP or Gravity.START
@@ -809,6 +830,16 @@ class OverlayService : Service() {
         } else {
             PixelFormat.TRANSLUCENT
         }
+
+    private fun maskWindowFlags(): Int {
+        val baseFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+        return if (config.fullOpaqueMaskEnabled) {
+            baseFlags
+        } else {
+            baseFlags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        }
+    }
 
     private fun overlayWindowType(): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
