@@ -1,0 +1,10 @@
+# Default IDE state files stay local.
+/workspace.xml
+/shelf/
+/libraries/
+/dataSources/
+/dataSources.local.xml
+/usage.statistics.xml
+/dictionaries/
+/uiDesigner.xml
+/aws.xml
