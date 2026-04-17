@@ -6,4 +6,5 @@ snapshots/
 *.xml
 !app/src/main/**/xml/
 !app/src/main/**/*.xml
+!app/src/main/**/*.png
 !.idea/vcs.xml

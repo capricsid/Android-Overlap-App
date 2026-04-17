@@ -1,5 +1,6 @@
 package com.example.overlayscreen
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -22,6 +23,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.CheckBox
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
@@ -130,8 +132,9 @@ class OverlayService : Service() {
         renderMaskSegments()
 
         val inflater = LayoutInflater.from(this)
+        val inflateRoot = FrameLayout(this)
 
-        controlsView = inflater.inflate(R.layout.overlay_controls, null).also { view ->
+        controlsView = inflater.inflate(R.layout.overlay_controls, inflateRoot, false).also { view ->
             controlsWindowLayoutParams = controlsLayoutParams().also { params ->
                 if (config.controlsX >= 0) params.x = config.controlsX
                 if (config.controlsY >= 0) params.y = config.controlsY
@@ -145,7 +148,7 @@ class OverlayService : Service() {
             }
         }
 
-        settingsView = inflater.inflate(R.layout.overlay_settings_panel, null).also { view ->
+        settingsView = inflater.inflate(R.layout.overlay_settings_panel, inflateRoot, false).also { view ->
             view.visibility = View.GONE
             settingsWindowLayoutParams = settingsLayoutParams().also { params ->
                 windowManager.addView(view, params)
@@ -219,6 +222,7 @@ class OverlayService : Service() {
         updateControlsAppearance()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun bindControlsDrag(view: View) {
         val touchSlop = ViewConfiguration.get(this).scaledTouchSlop
         var startRawX = 0f
@@ -395,10 +399,7 @@ class OverlayService : Service() {
             gravity = Gravity.TOP or Gravity.START
             x = state.left
             y = state.top
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-            }
+            applyCutoutMode()
         }
 
         return PeekHandleView(this).also { view ->
@@ -806,7 +807,7 @@ class OverlayService : Service() {
 
     private fun startOverlayForeground() {
         val notification = buildNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 NOTIFICATION_ID,
                 notification,
@@ -831,10 +832,7 @@ class OverlayService : Service() {
         PixelFormat.TRANSLUCENT,
     ).apply {
         gravity = Gravity.TOP or Gravity.START
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        }
+        applyCutoutMode()
     }
 
     private fun maskSegmentLayoutParams(rect: Rect): WindowManager.LayoutParams = WindowManager.LayoutParams(
@@ -848,10 +846,7 @@ class OverlayService : Service() {
         x = rect.left
         y = rect.top
         alpha = maskWindowAlpha()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        }
+        applyCutoutMode()
     }
 
     private fun controlsLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
@@ -865,10 +860,7 @@ class OverlayService : Service() {
         gravity = Gravity.TOP or Gravity.START
         x = dp(8)
         y = dp(8)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        }
+        applyCutoutMode()
     }
 
     private fun settingsLayoutParams(): WindowManager.LayoutParams = WindowManager.LayoutParams(
@@ -882,10 +874,7 @@ class OverlayService : Service() {
         gravity = Gravity.TOP or Gravity.START
         x = dp(8)
         y = dp(44)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        }
+        applyCutoutMode()
     }
 
     private fun simpleSeekListener(onChanged: (Int) -> Unit): SeekBar.OnSeekBarChangeListener {
@@ -933,6 +922,17 @@ class OverlayService : Service() {
             @Suppress("DEPRECATION")
             WindowManager.LayoutParams.TYPE_PHONE
         }
+
+    private fun WindowManager.LayoutParams.applyCutoutMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            @Suppress("DEPRECATION")
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+    }
 
     companion object {
         const val ACTION_START = "com.example.overlayscreen.action.START"
