@@ -271,6 +271,54 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
+                        android:text="@string/style_preview"
+                        android:textColor="@color/body_color" />
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="148dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/background_thumbnail_frame"
+                        android:padding="6dp">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:id="@+id/imageStylePreview"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@string/style_preview"
+                                android:scaleType="centerCrop" />
+
+                            <View
+                                android:id="@+id/viewStylePreviewFill"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/overlay_default" />
+
+                            <TextView
+                                android:id="@+id/textStylePreview"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:paddingLeft="14dp"
+                                android:paddingTop="8dp"
+                                android:paddingRight="14dp"
+                                android:paddingBottom="8dp"
+                                android:text="@string/preview_placeholder"
+                                android:textColor="@android:color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </FrameLayout>
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
                         android:text="@string/overlay_theme"
                         android:textColor="@color/body_color" />
 

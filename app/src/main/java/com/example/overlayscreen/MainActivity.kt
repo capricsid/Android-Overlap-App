@@ -3,6 +3,7 @@ package com.example.overlayscreen
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -13,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
@@ -225,6 +227,7 @@ class MainActivity : AppCompatActivity() {
                     store.update {
                         it.copy(
                             color = preset.color,
+                            backgroundUri = null,
                             selectedThemeKey = OverlayThemePreset.CUSTOM.key,
                         )
                     }
@@ -433,6 +436,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.textColorValue).text = String.format("#%06X", 0xFFFFFF and config.color)
         findViewById<View>(R.id.viewColorPreview).setBackgroundColor(config.color)
+        bindStylePreview(config)
 
         val editText = findViewById<EditText>(R.id.editOverlayText)
         if (editText.text?.toString() != config.customText) {
@@ -483,6 +487,48 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return uri.lastPathSegment ?: uriString
+    }
+
+    private fun bindStylePreview(config: OverlayConfig) {
+        val imageView = findViewById<ImageView>(R.id.imageStylePreview)
+        val fillView = findViewById<View>(R.id.viewStylePreviewFill)
+        val textView = findViewById<TextView>(R.id.textStylePreview)
+
+        fillView.setBackgroundColor(config.color)
+
+        val builtinBackground = BuiltinBackgrounds.decode(config.backgroundUri)
+        when {
+            builtinBackground != null -> {
+                imageView.visibility = View.VISIBLE
+                imageView.setImageResource(builtinBackground.drawableRes)
+            }
+
+            !config.backgroundUri.isNullOrBlank() -> {
+                imageView.visibility = View.VISIBLE
+                imageView.setImageURI(Uri.parse(config.backgroundUri))
+            }
+
+            else -> {
+                imageView.visibility = View.GONE
+                imageView.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
+            }
+        }
+
+        val previewText = config.customText.trim().ifBlank { getString(R.string.preview_placeholder) }
+        textView.text = previewText
+        textView.setTextColor(
+            if (isDarkColor(config.color)) {
+                Color.WHITE
+            } else {
+                Color.BLACK
+            },
+        )
+    }
+
+    private fun isDarkColor(color: Int): Boolean {
+        val darkness =
+            1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255
+        return darkness >= 0.45
     }
 
     private fun pushConfigUpdate() {
