@@ -12,6 +12,18 @@ object BuiltinBackgrounds {
     const val PREFIX = "builtin:"
 
     val presets: List<BuiltinBackground> = listOf(
+        BuiltinBackground("frosted_glass", R.drawable.frosted_glass, "Frosted Glass"),
+        BuiltinBackground("carbon_fiber", R.drawable.carbon_fiber, "Carbon Fiber"),
+        BuiltinBackground("matte_ink", R.drawable.matte_ink, "Matte Ink"),
+        BuiltinBackground("noise_shield", R.drawable.noise_shield, "Noise Shield"),
+        BuiltinBackground("blueprint", R.drawable.blueprint, "Blueprint"),
+        BuiltinBackground("concrete", R.drawable.concrete, "Concrete"),
+        BuiltinBackground("crt_static", R.drawable.crt_static, "CRT Static"),
+        BuiltinBackground("smoke", R.drawable.smoke, "Smoke"),
+        BuiltinBackground("velvet", R.drawable.velvet, "Velvet"),
+        BuiltinBackground("cipher", R.drawable.cipher, "Cipher"),
+        BuiltinBackground("camouflage", R.drawable.camouflage, "Camouflage"),
+        BuiltinBackground("halftone", R.drawable.halftone, "Halftone"),
         BuiltinBackground("pixelated_grain_background", R.drawable.pixelated_grain_background, "Pixel Grain"),
         BuiltinBackground("pixelated_background", R.drawable.pixelated_background, "Pixel Mosaic"),
         BuiltinBackground("pixelated_dawn_grid", R.drawable.pixelated_dawn_grid, "Dawn Grid"),

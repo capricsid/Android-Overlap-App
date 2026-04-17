@@ -17,6 +17,16 @@ enum class OverlayDismissAnimationMode(
 ) {
     OFF("off", "Off"),
     SHATTER("shatter", "Shatter"),
+    GLASS_CRACK("glass_crack", "Glass crack"),
+    CURTAIN_SPLIT("curtain_split", "Curtain split"),
+    IRIS_OPEN("iris_open", "Iris open"),
+    VENETIAN_BLINDS("venetian_blinds", "Venetian blinds"),
+    STATIC_BURN("static_burn", "Static burn"),
+    LIQUID_MELT("liquid_melt", "Liquid melt"),
+    CARD_FOLD("card_fold", "Card fold"),
+    RIPPLE_FADE("ripple_fade", "Ripple fade"),
+    GLITCH_SCATTER("glitch_scatter", "Glitch scatter"),
+    SPOTLIGHT_REVEAL("spotlight_reveal", "Spotlight reveal"),
     FADE_OUT("fade_out", "Fade out"),
     SHRINK("shrink", "Shrink"),
     PIXEL_DISSOLVE("pixel_dissolve", "Pixel dissolve"),
@@ -41,8 +51,20 @@ enum class OverlayThemePreset(
     NIGHT("night", "Night", Color.parseColor("#040A14"), "pixelated_cobalt_blocks"),
     PIXEL("pixel", "Pixel", Color.parseColor("#050505"), "pixelated_background"),
     PAPER("paper", "Paper", Color.parseColor("#19110B"), "pixelated_sandstorm"),
-    CARBON("carbon", "Carbon", Color.parseColor("#050505"), "pixelated_grain_background"),
-    EMBER("ember", "Ember", Color.parseColor("#120101"), "pixelated_ember_fade");
+    CARBON("carbon", "Graphite", Color.parseColor("#050505"), "pixelated_grain_background"),
+    EMBER("ember", "Ember", Color.parseColor("#120101"), "pixelated_ember_fade"),
+    FROSTED_GLASS("frosted_glass", "Frosted Glass", Color.parseColor("#25313B"), "frosted_glass"),
+    CARBON_FIBER("carbon_fiber", "Carbon Fiber", Color.parseColor("#050505"), "carbon_fiber"),
+    MATTE_INK("matte_ink", "Matte Ink", Color.parseColor("#080B10"), "matte_ink"),
+    NOISE_SHIELD("noise_shield", "Noise Shield", Color.parseColor("#040404"), "noise_shield"),
+    BLUEPRINT("blueprint", "Blueprint", Color.parseColor("#08152D"), "blueprint"),
+    CONCRETE("concrete", "Concrete", Color.parseColor("#202224"), "concrete"),
+    CRT_STATIC("crt_static", "CRT Static", Color.parseColor("#030707"), "crt_static"),
+    SMOKE("smoke", "Smoke", Color.parseColor("#121318"), "smoke"),
+    VELVET("velvet", "Velvet", Color.parseColor("#210012"), "velvet"),
+    CIPHER("cipher", "Cipher", Color.parseColor("#021109"), "cipher"),
+    CAMOUFLAGE("camouflage", "Camouflage", Color.parseColor("#171712"), "camouflage"),
+    HALFTONE("halftone", "Halftone", Color.parseColor("#080808"), "halftone");
 
     fun backgroundRef(): String? = backgroundKey?.let(BuiltinBackgrounds::encode)
 
