@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/panel_background"
@@ -17,7 +18,7 @@
         android:padding="5dp"
         android:scaleType="centerInside"
         android:src="@drawable/ic_minus_symbol"
-        android:tint="@android:color/white" />
+        app:tint="@android:color/white" />
 
     <LinearLayout
         android:id="@+id/overlayButtonsStrip"
@@ -36,7 +37,7 @@
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_power_symbol"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <Space
             android:layout_width="6dp"
@@ -51,7 +52,7 @@
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_home_symbol"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <Space
             android:layout_width="6dp"
@@ -66,6 +67,6 @@
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_gear_symbol"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
     </LinearLayout>
 </LinearLayout>

@@ -372,7 +372,8 @@ class MainActivity : AppCompatActivity() {
     private fun configureTextInput() {
         findViewById<EditText>(R.id.editOverlayText).doAfterTextChanged { editable ->
             if (bindingUi) return@doAfterTextChanged
-            store.update { it.copy(customText = editable?.toString().orEmpty()) }
+            val updatedConfig = store.update { it.copy(customText = editable?.toString().orEmpty()) }
+            bindStylePreview(updatedConfig)
             pushConfigUpdate()
         }
     }
@@ -494,21 +495,23 @@ class MainActivity : AppCompatActivity() {
         val fillView = findViewById<View>(R.id.viewStylePreviewFill)
         val textView = findViewById<TextView>(R.id.textStylePreview)
 
-        fillView.setBackgroundColor(config.color)
-
         val builtinBackground = BuiltinBackgrounds.decode(config.backgroundUri)
         when {
             builtinBackground != null -> {
+                fillView.visibility = View.GONE
                 imageView.visibility = View.VISIBLE
                 imageView.setImageResource(builtinBackground.drawableRes)
             }
 
             !config.backgroundUri.isNullOrBlank() -> {
+                fillView.visibility = View.GONE
                 imageView.visibility = View.VISIBLE
                 imageView.setImageURI(Uri.parse(config.backgroundUri))
             }
 
             else -> {
+                fillView.visibility = View.VISIBLE
+                fillView.setBackgroundColor(config.color)
                 imageView.visibility = View.GONE
                 imageView.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
             }

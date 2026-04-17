@@ -1,6 +1,4 @@
 package com.example.overlayscreen
-
-import android.content.Context
 import kotlin.math.roundToInt
 
 object OverlayOpacityPolicy {
@@ -31,6 +29,4 @@ object OverlayOpacityPolicy {
         fullOpaqueMaskEnabled: Boolean,
     ): Int =
         requestedActualPercent.coerceIn(0, maxActualPercent(fullOpaqueMaskEnabled))
-
-    fun isTouchThroughAllowed(context: Context, opacityPercent: Int): Boolean = true
 }
