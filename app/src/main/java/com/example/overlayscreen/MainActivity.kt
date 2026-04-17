@@ -342,7 +342,7 @@ class MainActivity : AppCompatActivity() {
                         selectedThemeKey = OverlayThemePreset.CUSTOM.key,
                     )
                 }
-                refreshColorWidgets(updatedConfig, syncMenus = true)
+                refreshColorWidgets(updatedConfig, syncMenus = true, syncWheel = false)
                 pushConfigUpdate()
             }
         }
@@ -365,7 +365,7 @@ class MainActivity : AppCompatActivity() {
                             selectedThemeKey = OverlayThemePreset.CUSTOM.key,
                         )
                     }
-                    refreshColorWidgets(updatedConfig, syncMenus = true)
+                    refreshColorWidgets(updatedConfig, syncMenus = true, syncWheel = true)
                     pushConfigUpdate()
                 }
             }
@@ -495,10 +495,13 @@ class MainActivity : AppCompatActivity() {
     private fun refreshColorWidgets(
         config: OverlayConfig,
         syncMenus: Boolean,
+        syncWheel: Boolean = true,
     ) {
         findViewById<TextView>(R.id.textColorValue).text = String.format("#%06X", 0xFFFFFF and config.color)
         findViewById<View>(R.id.viewColorPreview).setBackgroundColor(config.color)
-        findViewById<ColorWheelView>(R.id.colorWheelView).setColor(config.color)
+        if (syncWheel) {
+            findViewById<ColorWheelView>(R.id.colorWheelView).setColor(config.color)
+        }
         updateColorSwatchSelection(config.color)
         bindStylePreview(config)
         if (syncMenus) {

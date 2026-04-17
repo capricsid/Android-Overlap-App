@@ -70,11 +70,11 @@ class ColorWheelView @JvmOverloads constructor(
             centerY,
             intArrayOf(
                 Color.RED,
-                Color.MAGENTA,
-                Color.BLUE,
-                Color.CYAN,
-                Color.GREEN,
                 Color.YELLOW,
+                Color.GREEN,
+                Color.CYAN,
+                Color.BLUE,
+                Color.MAGENTA,
                 Color.RED,
             ),
             null,
@@ -93,12 +93,15 @@ class ColorWheelView @JvmOverloads constructor(
         super.onDraw(canvas)
         if (wheelRadius <= 0f) return
 
+        canvas.save()
+        canvas.rotate(-90f, centerX, centerY)
         canvas.drawCircle(centerX, centerY, wheelRadius, huePaint)
         canvas.drawCircle(centerX, centerY, wheelRadius, saturationPaint)
+        canvas.restore()
         canvas.drawCircle(centerX, centerY, wheelRadius, borderPaint)
 
         val sat = hsv[1].coerceIn(0f, 1f)
-        val angleRadians = Math.toRadians(hsv[0].toDouble())
+        val angleRadians = Math.toRadians((hsv[0] - 90f).toDouble())
         val selectorX = centerX + cos(angleRadians).toFloat() * wheelRadius * sat
         val selectorY = centerY + sin(angleRadians).toFloat() * wheelRadius * sat
 
@@ -135,7 +138,7 @@ class ColorWheelView @JvmOverloads constructor(
         val dy = y - centerY
         val distance = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
         val clampedDistance = distance.coerceIn(0f, wheelRadius)
-        val hue = ((Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())) + 360.0) % 360.0).toFloat()
+        val hue = ((Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())) + 450.0) % 360.0).toFloat()
         val saturation = if (wheelRadius == 0f) 0f else (clampedDistance / wheelRadius).coerceIn(0f, 1f)
 
         hsv[0] = hue

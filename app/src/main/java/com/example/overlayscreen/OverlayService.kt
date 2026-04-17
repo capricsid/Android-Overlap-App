@@ -179,8 +179,10 @@ class OverlayService : Service() {
         val bounds = windowManager.currentScreenBounds()
         config = store.load().seeded(bounds.width(), bounds.height())
         store.save(config)
-        renderMaskSegments()
-        restackForegroundWindows()
+        val windowsRebuilt = renderMaskSegments()
+        if (windowsRebuilt) {
+            restackForegroundWindows()
+        }
         peekOneView?.applyState(config.peekOne)
         peekTwoView?.applyState(config.peekTwo)
         peekThreeView?.applyState(config.peekThree)
@@ -436,8 +438,10 @@ class OverlayService : Service() {
 
     private fun persistAndRender(updatePanel: Boolean = true) {
         store.save(config)
-        renderMaskSegments()
-        restackForegroundWindows()
+        val windowsRebuilt = renderMaskSegments()
+        if (windowsRebuilt) {
+            restackForegroundWindows()
+        }
         applyControlsOpacity()
         updateControlsAppearance()
         if (updatePanel) {
@@ -446,9 +450,10 @@ class OverlayService : Service() {
         updateOverlayVisibility()
     }
 
-    private fun renderMaskSegments() {
+    private fun renderMaskSegments(): Boolean {
         val bounds = windowManager.currentScreenBounds()
         val scene = OverlayMaskLayout.buildScene(config, bounds.width(), bounds.height())
+        var windowsRebuilt = false
 
         if (lastAppliedFullOpaqueMaskEnabled != config.fullOpaqueMaskEnabled) {
             maskWindows.forEach { window ->
@@ -456,11 +461,13 @@ class OverlayService : Service() {
             }
             maskWindows.clear()
             lastAppliedFullOpaqueMaskEnabled = config.fullOpaqueMaskEnabled
+            windowsRebuilt = true
         }
 
         while (maskWindows.size > scene.segments.size) {
             val removed = maskWindows.removeLast()
             runCatching { windowManager.removeView(removed.view) }
+            windowsRebuilt = true
         }
 
         while (maskWindows.size < scene.segments.size) {
@@ -469,6 +476,7 @@ class OverlayService : Service() {
             val params = maskSegmentLayoutParams(rect)
             windowManager.addView(view, params)
             maskWindows += SegmentWindow(view, params)
+            windowsRebuilt = true
         }
 
         maskWindows.forEachIndexed { index, window ->
@@ -484,6 +492,7 @@ class OverlayService : Service() {
                 windowManager.updateViewLayout(window.view, window.params)
             }
         }
+        return windowsRebuilt
     }
 
     private fun restackForegroundWindows() {
