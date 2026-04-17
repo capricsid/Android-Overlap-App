@@ -1,19 +1,24 @@
 package com.example.overlayscreen
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
+import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Spinner
@@ -22,18 +27,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.view.WindowManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var store: OverlayConfigStore
     private lateinit var themeAdapter: ArrayAdapter<String>
     private lateinit var backgroundAdapter: ArrayAdapter<String>
     private lateinit var dismissAnimationAdapter: ArrayAdapter<String>
-    private lateinit var colorPresetAdapter: ArrayAdapter<String>
+    private val colorSwatchViews = mutableListOf<View>()
     private var bindingUi = false
     private var suppressSpinnerCallbacks = false
+
     private val statusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             refreshUi()
@@ -111,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         bindSectionToggles()
         configureSliders()
         configureTrueOpaqueToggle()
+        configureColorPicker()
         configureTextInput()
         refreshUi()
     }
@@ -145,16 +149,9 @@ class MainActivity : AppCompatActivity() {
             OverlayDismissAnimationMode.valuesList.map { it.title },
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        colorPresetAdapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            OverlayColorPresets.presets.map { it.title },
-        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
         findViewById<Spinner>(R.id.spinnerTheme).adapter = themeAdapter
         findViewById<Spinner>(R.id.spinnerBuiltinBackground).adapter = backgroundAdapter
         findViewById<Spinner>(R.id.spinnerDismissAnimation).adapter = dismissAnimationAdapter
-        findViewById<Spinner>(R.id.spinnerColorPreset).adapter = colorPresetAdapter
     }
 
     private fun bindMenus() {
@@ -214,25 +211,6 @@ class MainActivity : AppCompatActivity() {
                         it.copy(dismissAnimationModeKey = OverlayDismissAnimationMode.valuesList[position].key)
                     }
                     pushConfigUpdate()
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-            }
-
-        findViewById<Spinner>(R.id.spinnerColorPreset).onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    if (bindingUi || suppressSpinnerCallbacks) return
-                    val preset = OverlayColorPresets.presets[position]
-                    store.update {
-                        it.copy(
-                            color = preset.color,
-                            backgroundUri = null,
-                            selectedThemeKey = OverlayThemePreset.CUSTOM.key,
-                        )
-                    }
-                    pushConfigUpdate()
-                    refreshUi()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) = Unit
@@ -354,6 +332,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun configureColorPicker() {
+        findViewById<ColorWheelView>(R.id.colorWheelView).onColorChanged = { color ->
+            if (!bindingUi) {
+                val updatedConfig = store.update {
+                    it.copy(
+                        color = color,
+                        backgroundUri = null,
+                        selectedThemeKey = OverlayThemePreset.CUSTOM.key,
+                    )
+                }
+                refreshColorWidgets(updatedConfig, syncMenus = true)
+                pushConfigUpdate()
+            }
+        }
+
+        if (colorSwatchViews.isNotEmpty()) return
+        val swatchGrid = findViewById<GridLayout>(R.id.gridColorSwatches)
+        OverlayColorPresets.presets.forEach { preset ->
+            val swatch = View(this).apply {
+                layoutParams = GridLayout.LayoutParams().apply {
+                    width = dp(42)
+                    height = dp(42)
+                    columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                    setMargins(dp(2), dp(2), dp(2), dp(2))
+                }
+                setOnClickListener {
+                    val updatedConfig = store.update {
+                        it.copy(
+                            color = preset.color,
+                            backgroundUri = null,
+                            selectedThemeKey = OverlayThemePreset.CUSTOM.key,
+                        )
+                    }
+                    refreshColorWidgets(updatedConfig, syncMenus = true)
+                    pushConfigUpdate()
+                }
+            }
+            swatchGrid.addView(swatch)
+            colorSwatchViews += swatch
+        }
+    }
+
     private fun configSeekListener(onPersist: (Int) -> Unit): SeekBar.OnSeekBarChangeListener {
         return object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -435,9 +455,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<SeekBar>(R.id.seekToolbarOpacity).progress = config.controlsOpacityPercent - 15
         findViewById<CheckBox>(R.id.checkTrueOpaqueMask).isChecked = config.fullOpaqueMaskEnabled
 
-        findViewById<TextView>(R.id.textColorValue).text = String.format("#%06X", 0xFFFFFF and config.color)
-        findViewById<View>(R.id.viewColorPreview).setBackgroundColor(config.color)
-        bindStylePreview(config)
+        refreshColorWidgets(config, syncMenus = false)
 
         val editText = findViewById<EditText>(R.id.editOverlayText)
         if (editText.text?.toString() != config.customText) {
@@ -456,10 +474,6 @@ class MainActivity : AppCompatActivity() {
             OverlayDismissAnimationMode.valuesList.indexOfFirst { it.key == config.dismissAnimationModeKey }.coerceAtLeast(0),
             false,
         )
-        findViewById<Spinner>(R.id.spinnerColorPreset).setSelection(
-            OverlayColorPresets.indexOfColor(config.color),
-            false,
-        )
         findViewById<Spinner>(R.id.spinnerBuiltinBackground).setSelection(
             when {
                 config.backgroundUri == null -> 0
@@ -475,6 +489,60 @@ class MainActivity : AppCompatActivity() {
         bindingUi = false
         findViewById<View>(android.R.id.content).post {
             suppressSpinnerCallbacks = false
+        }
+    }
+
+    private fun refreshColorWidgets(
+        config: OverlayConfig,
+        syncMenus: Boolean,
+    ) {
+        findViewById<TextView>(R.id.textColorValue).text = String.format("#%06X", 0xFFFFFF and config.color)
+        findViewById<View>(R.id.viewColorPreview).setBackgroundColor(config.color)
+        findViewById<ColorWheelView>(R.id.colorWheelView).setColor(config.color)
+        updateColorSwatchSelection(config.color)
+        bindStylePreview(config)
+        if (syncMenus) {
+            findViewById<TextView>(R.id.textBackgroundValue).text =
+                config.backgroundUri?.let(::resolveDisplayName) ?: getString(R.string.no_background_selected)
+            syncAppearanceMenus(config)
+        }
+    }
+
+    private fun syncAppearanceMenus(config: OverlayConfig) {
+        suppressSpinnerCallbacks = true
+        findViewById<Spinner>(R.id.spinnerTheme).setSelection(
+            OverlayThemePreset.valuesList.indexOfFirst { it.key == config.selectedThemeKey }.coerceAtLeast(0),
+            false,
+        )
+        findViewById<Spinner>(R.id.spinnerBuiltinBackground).setSelection(
+            when {
+                config.backgroundUri == null -> 0
+                BuiltinBackgrounds.decode(config.backgroundUri) != null ->
+                    BuiltinBackgrounds.presets.indexOfFirst {
+                        BuiltinBackgrounds.encode(it.key) == config.backgroundUri
+                    }.let { index -> if (index >= 0) index + 2 else 0 }
+                else -> 1
+            },
+            false,
+        )
+        findViewById<View>(android.R.id.content).post {
+            suppressSpinnerCallbacks = false
+        }
+    }
+
+    private fun updateColorSwatchSelection(color: Int) {
+        colorSwatchViews.forEachIndexed { index, swatch ->
+            val swatchColor = OverlayColorPresets.presets[index].color
+            swatch.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(12).toFloat()
+                setColor(swatchColor)
+                setStroke(
+                    dp(if (swatchColor == color) 3 else 1),
+                    if (swatchColor == color) Color.WHITE else Color.parseColor("#5A433B"),
+                )
+            }
+            swatch.alpha = if (swatchColor == color) 1f else 0.88f
         }
     }
 
@@ -537,4 +605,6 @@ class MainActivity : AppCompatActivity() {
     private fun pushConfigUpdate() {
         sendBroadcast(Intent(OverlayService.ACTION_CONFIG_CHANGED).setPackage(packageName))
     }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 }

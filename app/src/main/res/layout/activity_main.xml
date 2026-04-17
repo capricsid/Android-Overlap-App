@@ -350,11 +350,11 @@
                         android:text="@string/overlay_color"
                         android:textColor="@color/body_color" />
 
-                    <Spinner
-                        android:id="@+id/spinnerColorPreset"
+                    <com.example.overlayscreen.ColorWheelView
+                        android:id="@+id/colorWheelView"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp" />
+                        android:layout_height="220dp"
+                        android:layout_marginTop="10dp" />
 
                     <TextView
                         android:id="@+id/textColorValue"
@@ -370,6 +370,16 @@
                         android:layout_height="56dp"
                         android:layout_marginTop="10dp"
                         android:background="@color/overlay_default" />
+
+                    <GridLayout
+                        android:id="@+id/gridColorSwatches"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="4"
+                        android:rowOrderPreserved="false"
+                        android:useDefaultMargins="true" />
 
                     <TextView
                         android:layout_width="wrap_content"
